@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ContratoFácil - Gerador de Contratos Simples</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS com configuração de Dark Mode -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     
     <!-- jsPDF para geração de PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -21,30 +26,33 @@
             outline: 3px solid #2563eb;
             outline-offset: 2px;
         }
-        .high-contrast-text { color: #0f172a; }
         /* Animações simples em CSS puro */
         .fade-in { animation: fadeIn 0.5s ease-out; }
         .slide-in { animation: slideIn 0.3s ease-out; }
         
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* Estilo para o Canvas de Assinatura */
+        canvas {
+            touch-action: none; /* Previne scroll ao desenhar no telemóvel */
+        }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-300">
 
     <!-- CABEÇALHO -->
-    <header class="bg-white border-b border-slate-200 py-4 px-4 sticky top-0 z-10 shadow-sm">
+    <header class="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 py-4 px-4 sticky top-0 z-10 shadow-sm transition-colors duration-300">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <button id="btn-reset" class="flex items-center gap-2 text-slate-800 hover:text-blue-600 transition-colors focus:ring-2 focus:ring-blue-500 rounded-md p-1">
-                <i data-lucide="shield" class="text-blue-600"></i>
-                <span class="font-bold text-xl tracking-tight">Contrato<span class="text-blue-600">Fácil</span></span>
+            <button id="btn-reset" class="flex items-center gap-2 text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:ring-2 focus:ring-blue-500 rounded-md p-1">
+                <i data-lucide="shield" class="text-blue-600 dark:text-blue-500"></i>
+                <span class="font-bold text-xl tracking-tight">Contrato<span class="text-blue-600 dark:text-blue-500">Fácil</span></span>
             </button>
-            <nav>
-                <ul class="flex gap-4 text-sm font-medium text-slate-600">
-                    <li>Seguro</li>
-                    <li>Privado</li>
-                    <li>Gratuito</li>
-                </ul>
+            <nav class="flex items-center gap-4">
+                <!-- Botão Toggle Dark Mode -->
+                <button onclick="actions.toggleTheme()" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors" aria-label="Alternar tema">
+                    <i id="theme-icon" data-lucide="moon" width="20"></i>
+                </button>
             </nav>
         </div>
     </header>
@@ -53,7 +61,7 @@
     <main id="app" class="flex-grow w-full"></main>
 
     <!-- RODAPÉ -->
-    <footer class="bg-white border-t border-slate-200 py-6 mt-auto">
+    <footer class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 py-6 mt-auto transition-colors duration-300">
         <div class="max-w-4xl mx-auto px-4 text-center text-slate-400 text-sm">
             <p id="copyright-year">© 2024 ContratoFácil Portugal. Construído com privacidade em mente.</p>
         </div>
@@ -187,6 +195,68 @@ Assinaturas:
 
 __________________________      __________________________
 Mutuante                        Mutuário`
+            },
+            {
+                id: 'veiculo',
+                title: 'Compra e Venda de Veículo',
+                icon: 'car',
+                description: 'Para venda de carro/mota entre particulares.',
+                fields: [
+                    { name: 'vendedorNome', label: 'Nome do Vendedor', type: 'text', section: 'Vendedor' },
+                    { name: 'vendedorCC', label: 'CC/BI do Vendedor', type: 'text', section: 'Vendedor' },
+                    { name: 'compradorNome', label: 'Nome do Comprador', type: 'text', section: 'Comprador' },
+                    { name: 'compradorCC', label: 'CC/BI do Comprador', type: 'text', section: 'Comprador' },
+                    { name: 'marcaModelo', label: 'Marca e Modelo do Veículo', type: 'text', section: 'Veículo' },
+                    { name: 'matricula', label: 'Matrícula', type: 'text', section: 'Veículo' },
+                    { name: 'valorVenda', label: 'Valor da Venda (€)', type: 'number', section: 'Pagamento' },
+                ],
+                generate: (data) => `CONTRATO DE COMPRA E VENDA DE VEÍCULO
+
+VENDEDOR: ${data.vendedorNome || '[NOME]'}, portador do CC nº ${data.vendedorCC || '[CC]'}.
+COMPRADOR: ${data.compradorNome || '[NOME]'}, portador do CC nº ${data.compradorCC || '[CC]'}.
+
+1. O Vendedor vende ao Comprador o veículo marca/modelo ${data.marcaModelo || '[VEÍCULO]'}, com matrícula ${data.matricula || '[MATRICULA]'}.
+2. O preço da venda é de ${data.valorVenda || '0,00'}€, que o Vendedor declara já ter recebido.
+3. O veículo é vendido no estado em que se encontra (venda entre particulares).
+4. O Comprador compromete-se a alterar o registo de propriedade no prazo de 60 dias.
+
+Data: ${new Date().toLocaleDateString('pt-PT')}
+
+__________________________      __________________________
+Vendedor                        Comprador`
+            },
+            {
+                id: 'trabalho',
+                title: 'Trabalho a Termo Certo',
+                icon: 'briefcase',
+                description: 'Contrato laboral simples com prazo definido.',
+                fields: [
+                    { name: 'empregadorNome', label: 'Nome da Empresa/Empregador', type: 'text', section: 'Empregador' },
+                    { name: 'trabalhadorNome', label: 'Nome do Trabalhador', type: 'text', section: 'Trabalhador' },
+                    { name: 'funcao', label: 'Função a desempenhar', type: 'text', section: 'Atividade' },
+                    { name: 'salario', label: 'Salário Base Mensal (€)', type: 'number', section: 'Condições' },
+                    { name: 'inicio', label: 'Data de Início', type: 'date', section: 'Duração' },
+                    { name: 'fim', label: 'Data de Fim', type: 'date', section: 'Duração' },
+                    { name: 'motivo', label: 'Motivo do Termo (ex: substituição)', type: 'text', section: 'Justificação Legal' },
+                ],
+                generate: (data) => `CONTRATO DE TRABALHO A TERMO CERTO
+
+ENTRE: ${data.empregadorNome || '[EMPREGADOR]'} (Primeiro Outorgante)
+E: ${data.trabalhadorNome || '[TRABALHADOR]'} (Segundo Outorgante)
+
+CLÁUSULA 1ª (Função)
+O Segundo Outorgante é contratado para exercer as funções de ${data.funcao || '[FUNÇÃO]'}.
+
+CLÁUSULA 2ª (Duração)
+O contrato tem início em ${data.inicio || '[DATA]'} e termo em ${data.fim || '[DATA]'}, justificado por: ${data.motivo || '[MOTIVO]'}.
+
+CLÁUSULA 3ª (Retribuição)
+A retribuição mensal ilíquida é de ${data.salario || '0,00'}€.
+
+Local e Data: __________________, ${new Date().toLocaleDateString('pt-PT')}
+
+__________________________      __________________________
+O Empregador                    O Trabalhador`
             }
         ];
 
@@ -196,10 +266,12 @@ Mutuante                        Mutuário`
             view: 'dashboard', // dashboard, form, preview
             currentTemplateId: null,
             formData: JSON.parse(localStorage.getItem('contratoFacil_data')) || {},
-            finalText: ''
+            finalText: '',
+            darkMode: localStorage.getItem('contratoFacil_theme') === 'dark'
         };
 
         const appContainer = document.getElementById('app');
+        let signaturePad = null; // Variável para controlar o contexto do canvas
 
         // --- 3. RENDERIZAÇÃO DE VISTAS ---
 
@@ -207,23 +279,23 @@ Mutuante                        Mutuário`
             const html = `
                 <div class="fade-in max-w-4xl mx-auto px-4 py-8">
                     <div class="text-center mb-12">
-                        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Crie documentos jurídicos em minutos</h1>
-                        <p class="text-lg text-slate-600 max-w-2xl mx-auto">Selecione um modelo, responda a algumas perguntas e descarregue o seu PDF. Tudo acontece no seu navegador, os seus dados nunca saem daqui.</p>
+                        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Crie documentos jurídicos em minutos</h1>
+                        <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">Selecione um modelo, responda a algumas perguntas e descarregue o seu PDF. Tudo acontece no seu navegador, os seus dados nunca saem daqui.</p>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         ${TEMPLATES.map(t => `
                             <button 
                                 onclick="actions.selectTemplate('${t.id}')"
-                                class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all text-left flex flex-col gap-4 group focus:ring-4 focus:ring-blue-100 w-full"
+                                class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-blue-300 dark:hover:border-blue-500 transition-all text-left flex flex-col gap-4 group focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900 w-full"
                                 aria-label="Criar contrato de ${t.title}"
                             >
-                                <div class="p-3 bg-blue-50 text-blue-600 rounded-lg w-fit group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                <div class="p-3 bg-blue-50 dark:bg-slate-700 text-blue-600 dark:text-blue-400 rounded-lg w-fit group-hover:bg-blue-600 group-hover:text-white transition-colors">
                                     <i data-lucide="${t.icon}" width="24" height="24"></i>
                                 </div>
                                 <div>
-                                    <h3 class="font-bold text-lg text-slate-900">${t.title}</h3>
-                                    <p class="text-slate-500 text-sm mt-1 leading-relaxed">${t.description}</p>
+                                    <h3 class="font-bold text-lg text-slate-900 dark:text-white">${t.title}</h3>
+                                    <p class="text-slate-500 dark:text-slate-400 text-sm mt-1 leading-relaxed">${t.description}</p>
                                 </div>
                             </button>
                         `).join('')}
@@ -248,26 +320,26 @@ Mutuante                        Mutuário`
 
             const html = `
                 <div class="slide-in max-w-2xl mx-auto px-4 py-8">
-                    <button onclick="actions.goBack()" class="flex items-center gap-2 text-slate-500 hover:text-slate-800 mb-6 font-medium">
+                    <button onclick="actions.goBack()" class="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white mb-6 font-medium">
                         <i data-lucide="arrow-left" width="16"></i> Voltar
                     </button>
                     
-                    <h1 class="text-2xl font-bold mb-2">${template.title}</h1>
-                    <p class="text-slate-500 mb-8">Preencha os dados abaixo para gerar o seu rascunho.</p>
+                    <h1 class="text-2xl font-bold mb-2 text-slate-900 dark:text-white">${template.title}</h1>
+                    <p class="text-slate-500 dark:text-slate-400 mb-8">Preencha os dados abaixo para gerar o seu rascunho.</p>
 
                     <div class="space-y-8">
                         ${Object.entries(sections).map(([secName, fields]) => `
-                            <fieldset class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                                <legend class="text-lg font-bold text-slate-800 mb-4 w-full border-b pb-2">${secName}</legend>
+                            <fieldset class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                                <legend class="text-lg font-bold text-slate-800 dark:text-slate-200 mb-4 w-full border-b dark:border-slate-700 pb-2">${secName}</legend>
                                 <div class="space-y-4">
                                     ${fields.map(field => `
                                         <div>
-                                            <label for="${field.name}" class="block text-sm font-semibold text-slate-700 mb-1">
+                                            <label for="${field.name}" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
                                                 ${field.label}
                                             </label>
                                             ${field.type === 'textarea' 
-                                                ? `<textarea id="${field.name}" oninput="actions.updateField('${field.name}', this.value)" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]">${state.formData[field.name] || ''}</textarea>`
-                                                : `<input type="${field.type}" id="${field.name}" value="${state.formData[field.name] || ''}" oninput="actions.updateField('${field.name}', this.value)" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">`
+                                                ? `<textarea id="${field.name}" oninput="actions.updateField('${field.name}', this.value)" class="w-full p-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white min-h-[100px]">${state.formData[field.name] || ''}</textarea>`
+                                                : `<input type="${field.type}" id="${field.name}" value="${state.formData[field.name] || ''}" oninput="actions.updateField('${field.name}', this.value)" class="w-full p-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:text-white">`
                                             }
                                         </div>
                                     `).join('')}
@@ -279,7 +351,7 @@ Mutuante                        Mutuário`
                     <div class="mt-8 flex justify-end">
                         <button 
                             onclick="actions.generate()"
-                            class="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all flex items-center gap-2"
+                            class="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 transition-all flex items-center gap-2"
                         >
                             Gerar Contrato <i data-lucide="file-text" width="20"></i>
                         </button>
@@ -293,47 +365,64 @@ Mutuante                        Mutuário`
 
         function renderPreview() {
             const html = `
-                <div class="fade-in max-w-4xl mx-auto px-4 py-8 h-full flex flex-col">
-                     <button onclick="actions.editForm()" class="flex items-center gap-2 text-slate-500 hover:text-slate-800 mb-6 font-medium w-fit">
+                <div class="fade-in max-w-6xl mx-auto px-4 py-8 h-full flex flex-col">
+                     <button onclick="actions.editForm()" class="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white mb-6 font-medium w-fit">
                         <i data-lucide="arrow-left" width="16"></i> Voltar à edição
                     </button>
 
-                    <div class="flex flex-col md:flex-row gap-6 h-full">
+                    <div class="flex flex-col lg:flex-row gap-6 h-full">
                         <!-- Área de Edição -->
-                        <div class="flex-1 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden flex flex-col">
-                            <div class="bg-slate-100 p-4 border-b border-slate-200 flex justify-between items-center">
-                                <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                        <div class="flex-1 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
+                            <div class="bg-slate-100 dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                                <h3 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                                     <i data-lucide="pen-tool" width="16"></i> Editor Final
                                 </h3>
-                                <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Modo de Edição</span>
+                                <span class="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Modo de Edição</span>
                             </div>
                             <textarea 
                                 id="final-editor"
                                 oninput="actions.updateFinalText(this.value)"
-                                class="w-full h-[60vh] p-8 font-mono text-sm leading-relaxed resize-none focus:outline-none text-slate-800"
+                                class="w-full h-[60vh] p-8 font-mono text-sm leading-relaxed resize-none focus:outline-none text-slate-800 dark:text-slate-200 dark:bg-slate-800"
                                 aria-label="Texto do contrato editável"
                             >${state.finalText}</textarea>
                         </div>
 
                         <!-- Sidebar de Ações -->
-                        <div class="w-full md:w-64 flex flex-col gap-4">
-                            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                                <h4 class="font-bold text-blue-800 mb-2 text-sm">Pronto para exportar?</h4>
-                                <p class="text-xs text-blue-600 mb-4">Pode editar o texto diretamente na caixa ao lado antes de descarregar.</p>
+                        <div class="w-full lg:w-80 flex flex-col gap-4">
+                            
+                            <!-- Área de Assinatura Digital -->
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                                <h4 class="font-bold text-slate-800 dark:text-white mb-2 text-sm flex items-center gap-2">
+                                    <i data-lucide="pen" width="14"></i> Assinar Digitalmente
+                                </h4>
+                                <div class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-900 overflow-hidden mb-2 relative">
+                                    <canvas id="signature-canvas" width="300" height="150" class="w-full touch-none cursor-crosshair"></canvas>
+                                    <div id="sig-placeholder" class="absolute inset-0 flex items-center justify-center text-slate-400 text-xs pointer-events-none">
+                                        Desenhe a sua assinatura aqui
+                                    </div>
+                                </div>
+                                <button onclick="actions.clearSignature()" class="text-xs text-red-500 hover:text-red-700 font-medium w-full text-right">
+                                    Limpar Assinatura
+                                </button>
+                            </div>
+
+                            <div class="bg-blue-50 dark:bg-slate-900/50 p-4 rounded-xl border border-blue-100 dark:border-blue-900">
+                                <h4 class="font-bold text-blue-800 dark:text-blue-400 mb-2 text-sm">Pronto para exportar?</h4>
+                                <p class="text-xs text-blue-600 dark:text-blue-300 mb-4">Se desenhar uma assinatura, ela será adicionada ao final do PDF.</p>
                                 <button 
                                     id="btn-download"
                                     onclick="actions.downloadPDF()"
-                                    class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-blue-700 flex justify-center items-center gap-2 shadow-sm"
+                                    class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-blue-700 dark:hover:bg-blue-500 flex justify-center items-center gap-2 shadow-sm transition-all"
                                 >
                                     Descarregar PDF <i data-lucide="download" width="18"></i>
                                 </button>
                             </div>
 
-                            <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
-                                <h4 class="font-bold text-yellow-800 mb-2 text-sm flex items-center gap-2">
+                            <div class="bg-yellow-50 dark:bg-yellow-900/10 p-4 rounded-xl border border-yellow-100 dark:border-yellow-900/30">
+                                <h4 class="font-bold text-yellow-800 dark:text-yellow-500 mb-2 text-sm flex items-center gap-2">
                                     <i data-lucide="shield" width="14"></i> Aviso Legal
                                 </h4>
-                                <p class="text-xs text-yellow-700">
+                                <p class="text-xs text-yellow-700 dark:text-yellow-600">
                                     O ContratoFácil fornece minutas padronizadas. Não substitui aconselhamento jurídico.
                                 </p>
                             </div>
@@ -344,11 +433,94 @@ Mutuante                        Mutuário`
             appContainer.innerHTML = html;
             lucide.createIcons();
             window.scrollTo(0, 0);
+
+            // Inicializar Canvas de Assinatura
+            initSignaturePad();
         }
 
-        // --- 4. CONTROLADORES E AÇÕES ---
+        // --- 4. FUNÇÕES DO CANVAS (ASSINATURA) ---
+
+        function initSignaturePad() {
+            const canvas = document.getElementById('signature-canvas');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+
+            // Ajuste para alta resolução (Retina displays)
+            // Mantemos tamanho visual, mas aumentamos resolução interna
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = state.darkMode ? '#ffffff' : '#000000'; // Cor da assinatura adapta-se
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: clientX - rect.left,
+                    y: clientY - rect.top
+                };
+            }
+
+            function startDraw(e) {
+                isDrawing = true;
+                const pos = getPos(e);
+                lastX = pos.x;
+                lastY = pos.y;
+                document.getElementById('sig-placeholder').style.display = 'none';
+            }
+
+            function draw(e) {
+                if (!isDrawing) return;
+                e.preventDefault(); // Previne scroll no touch
+                const pos = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                lastX = pos.x;
+                lastY = pos.y;
+            }
+
+            function stopDraw() {
+                isDrawing = false;
+            }
+
+            // Event Listeners Mouse
+            canvas.addEventListener('mousedown', startDraw);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDraw);
+            canvas.addEventListener('mouseout', stopDraw);
+
+            // Event Listeners Touch
+            canvas.addEventListener('touchstart', startDraw);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('touchend', stopDraw);
+            
+            // Guardar referência global para limpar
+            state.signatureCanvas = canvas;
+            state.signatureCtx = ctx;
+        }
+
+        // --- 5. CONTROLADORES E AÇÕES ---
 
         const actions = {
+            toggleTheme: () => {
+                state.darkMode = !state.darkMode;
+                applyTheme();
+                localStorage.setItem('contratoFacil_theme', state.darkMode ? 'dark' : 'light');
+                
+                // Se estiver no preview, re-renderizar para ajustar cor do canvas
+                if (state.view === 'preview') renderPreview();
+            },
             selectTemplate: (id) => {
                 state.currentTemplateId = id;
                 state.view = 'form';
@@ -385,6 +557,12 @@ Mutuante                        Mutuário`
                     renderDashboard();
                 }
             },
+            clearSignature: () => {
+                if (state.signatureCtx && state.signatureCanvas) {
+                    state.signatureCtx.clearRect(0, 0, state.signatureCanvas.width, state.signatureCanvas.height);
+                    document.getElementById('sig-placeholder').style.display = 'flex';
+                }
+            },
             downloadPDF: () => {
                 const btn = document.getElementById('btn-download');
                 const originalText = btn.innerHTML;
@@ -402,6 +580,7 @@ Mutuante                        Mutuário`
                     let cursorY = 20;
                     const pageHeight = 280;
 
+                    // Adicionar Texto
                     splitText.forEach(line => {
                         if (cursorY > pageHeight) {
                             doc.addPage();
@@ -410,6 +589,45 @@ Mutuante                        Mutuário`
                         doc.text(line, 15, cursorY);
                         cursorY += 7;
                     });
+
+                    // Adicionar Assinatura (se existir)
+                    const canvas = document.getElementById('signature-canvas');
+                    // Verificar se o canvas não está vazio (truque simples: verificar placeholder)
+                    const isPlaceholderVisible = document.getElementById('sig-placeholder').style.display !== 'none';
+                    
+                    if (canvas && !isPlaceholderVisible) {
+                        // Converter canvas para imagem para PDF
+                        // Nota: Se estiver em dark mode, a assinatura é branca. 
+                        // Para PDF (papel branco), precisamos inverter ou garantir contraste.
+                        // Para simplicidade, vamos assumir que a assinatura é inserida como imagem.
+                        // Se for branca, não se vê no papel branco. 
+                        
+                        // FIX: Criar canvas temporário para forçar preto sobre transparente se necessário
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = canvas.width;
+                        tempCanvas.height = canvas.height;
+                        const tCtx = tempCanvas.getContext('2d');
+                        
+                        // Desenhar a imagem original
+                        tCtx.drawImage(canvas, 0, 0);
+                        
+                        // Se estivermos em Dark Mode, a tinta é branca. Mudar para preto para o PDF.
+                        if (state.darkMode) {
+                            tCtx.globalCompositeOperation = 'source-in';
+                            tCtx.fillStyle = 'black';
+                            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                        }
+
+                        const imgData = tempCanvas.toDataURL('image/png');
+                        
+                        if (cursorY + 40 > pageHeight) {
+                            doc.addPage();
+                            cursorY = 20;
+                        }
+                        
+                        doc.text("Assinatura Digital:", 15, cursorY + 10);
+                        doc.addImage(imgData, 'PNG', 15, cursorY + 15, 60, 30);
+                    }
 
                     doc.save("contrato-facil.pdf");
                     
@@ -420,10 +638,27 @@ Mutuante                        Mutuário`
             }
         };
 
-        // --- 5. INICIALIZAÇÃO ---
+        // --- 6. GESTÃO DE TEMA ---
+        
+        function applyTheme() {
+            const icon = document.getElementById('theme-icon');
+            if (state.darkMode) {
+                document.documentElement.classList.add('dark');
+                if(icon) icon.setAttribute('data-lucide', 'sun'); // Mostrar sol quando está escuro
+            } else {
+                document.documentElement.classList.remove('dark');
+                if(icon) icon.setAttribute('data-lucide', 'moon'); // Mostrar lua quando está claro
+            }
+            lucide.createIcons();
+        }
+
+        // --- 7. INICIALIZAÇÃO ---
 
         document.getElementById('btn-reset').addEventListener('click', actions.resetApp);
         document.getElementById('copyright-year').textContent = `© ${new Date().getFullYear()} ContratoFácil Portugal. Construído com privacidade em mente.`;
+
+        // Aplicar tema inicial
+        applyTheme();
 
         // Renderizar inicial
         renderDashboard();
