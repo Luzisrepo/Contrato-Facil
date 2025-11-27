@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContratoFácil - Gerador de Contratos Simples</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- jsPDF para geração de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* Ajustes de Acessibilidade e Foco */
+        body { font-family: system-ui, -apple-system, sans-serif; }
+        *:focus-visible {
+            outline: 3px solid #2563eb;
+            outline-offset: 2px;
+        }
+        .high-contrast-text { color: #0f172a; }
+        /* Animações simples em CSS puro */
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        .slide-in { animation: slideIn 0.3s ease-out; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+    <!-- CABEÇALHO -->
+    <header class="bg-white border-b border-slate-200 py-4 px-4 sticky top-0 z-10 shadow-sm">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <button id="btn-reset" class="flex items-center gap-2 text-slate-800 hover:text-blue-600 transition-colors focus:ring-2 focus:ring-blue-500 rounded-md p-1">
+                <i data-lucide="shield" class="text-blue-600"></i>
+                <span class="font-bold text-xl tracking-tight">Contrato<span class="text-blue-600">Fácil</span></span>
+            </button>
+            <nav>
+                <ul class="flex gap-4 text-sm font-medium text-slate-600">
+                    <li>Seguro</li>
+                    <li>Privado</li>
+                    <li>Gratuito</li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL (Injetado via JS) -->
+    <main id="app" class="flex-grow w-full"></main>
+
+    <!-- RODAPÉ -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-auto">
+        <div class="max-w-4xl mx-auto px-4 text-center text-slate-400 text-sm">
+            <p id="copyright-year">© 2024 ContratoFácil Portugal. Construído com privacidade em mente.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- 1. DADOS E TEMPLATES ---
+
+        const TEMPLATES = [
+            {
+                id: 'arrendamento',
+                title: 'Arrendamento Habitacional',
+                icon: 'home',
+                description: 'Para arrendamento de casa ou apartamento para habitação.',
+                fields: [
+                    { name: 'senhorioNome', label: 'Nome do Senhorio', type: 'text', section: 'Primeiro Outorgante (Senhorio)' },
+                    { name: 'senhorioNif', label: 'NIF do Senhorio', type: 'text', section: 'Primeiro Outorgante (Senhorio)' },
+                    { name: 'senhorioMorada', label: 'Morada do Senhorio', type: 'text', section: 'Primeiro Outorgante (Senhorio)' },
+                    { name: 'inquilinoNome', label: 'Nome do Inquilino', type: 'text', section: 'Segundo Outorgante (Inquilino)' },
+                    { name: 'inquilinoNif', label: 'NIF do Inquilino', type: 'text', section: 'Segundo Outorgante (Inquilino)' },
+                    { name: 'imovelMorada', label: 'Morada do Imóvel a Arrendar', type: 'text', section: 'Objeto do Contrato' },
+                    { name: 'valorRenda', label: 'Valor da Renda (€)', type: 'number', section: 'Condições Financeiras' },
+                    { name: 'diaPagamento', label: 'Dia limite de pagamento (ex: dia 8)', type: 'number', section: 'Condições Financeiras' },
+                    { name: 'dataInicio', label: 'Data de Início', type: 'date', section: 'Duração' },
+                    { name: 'duracaoMeses', label: 'Duração (em meses)', type: 'number', section: 'Duração' },
+                ],
+                generate: (data) => `CONTRATO DE ARRENDAMENTO HABITACIONAL
+
+ENTRE:
+
+PRIMEIRO OUTORGANTE: ${data.senhorioNome || '[NOME SENHORIO]'}, contribuinte fiscal n.º ${data.senhorioNif || '[NIF]'}, residente em ${data.senhorioMorada || '[MORADA]'}, doravante designado por "Senhorio";
+
+E
+
+SEGUNDO OUTORGANTE: ${data.inquilinoNome || '[NOME INQUILINO]'}, contribuinte fiscal n.º ${data.inquilinoNif || '[NIF]'}, doravante designado por "Inquilino".
+
+CLÁUSULA PRIMEIRA (Objeto)
+O Senhorio é dono e legítimo proprietário da fração autónoma sita em ${data.imovelMorada || '[MORADA IMOVEL]'}, que pelo presente dá de arrendamento ao Inquilino.
+
+CLÁUSULA SEGUNDA (Prazo)
+Este contrato é celebrado pelo prazo de ${data.duracaoMeses || '12'} meses, com início em ${data.dataInicio || '[DATA]'}, renovando-se automaticamente por iguais períodos, salvo denúncia por qualquer das partes nos termos da lei.
+
+CLÁUSULA TERCEIRA (Renda)
+1. A renda mensal é de ${data.valorRenda || '0,00'}€ (Euros).
+2. A renda deverá ser paga até ao dia ${data.diaPagamento || '8'} do mês a que respeita.
+
+CLÁUSULA QUARTA (Finalidade)
+O local arrendado destina-se exclusivamente a habitação própria e permanente do Inquilino.
+
+CLÁUSULA QUINTA (Lei Aplicável)
+Em tudo o que este contrato for omisso, rege-se pela legislação portuguesa aplicável.
+
+Feito em duplicado, sendo ambos assinados e entregues a cada uma das partes.
+
+Data: ${new Date().toLocaleDateString('pt-PT')}
+
+__________________________
+O Senhorio
+
+__________________________
+O Inquilino`
+            },
+            {
+                id: 'servicos',
+                title: 'Prestação de Serviços',
+                icon: 'pen-tool',
+                description: 'Para freelancers ou empresas prestarem serviços a clientes.',
+                fields: [
+                    { name: 'prestadorNome', label: 'Nome do Prestador', type: 'text', section: 'Prestador de Serviços' },
+                    { name: 'prestadorNif', label: 'NIF/NIPC do Prestador', type: 'text', section: 'Prestador de Serviços' },
+                    { name: 'clienteNome', label: 'Nome do Cliente', type: 'text', section: 'Cliente' },
+                    { name: 'clienteNif', label: 'NIF/NIPC do Cliente', type: 'text', section: 'Cliente' },
+                    { name: 'descricaoServico', label: 'Descrição Detalhada do Serviço', type: 'textarea', section: 'O Serviço' },
+                    { name: 'valorTotal', label: 'Valor Total (€)', type: 'number', section: 'Pagamento' },
+                    { name: 'prazoDias', label: 'Prazo de execução (dias)', type: 'number', section: 'Prazos' },
+                ],
+                generate: (data) => `CONTRATO DE PRESTAÇÃO DE SERVIÇOS
+
+ENTRE:
+
+${data.prestadorNome || '[PRESTADOR]'}, NIF ${data.prestadorNif || '[NIF]'}, doravante "Prestador";
+E
+${data.clienteNome || '[CLIENTE]'}, NIF ${data.clienteNif || '[NIF]'}, doravante "Cliente".
+
+1. OBJETO
+O Prestador obriga-se a realizar os seguintes serviços:
+${data.descricaoServico || '[DESCRIÇÃO DO SERVIÇO]'}
+
+2. PREÇO E PAGAMENTO
+Pela prestação dos serviços, o Cliente pagará o valor de ${data.valorTotal || '0,00'}€ + IVA (se aplicável).
+
+3. PRAZO
+Os serviços serão concluídos no prazo de ${data.prazoDias || 'X'} dias a contar da assinatura deste contrato.
+
+4. INDEPENDÊNCIA
+Este contrato não gera qualquer vínculo laboral entre as partes.
+
+Local e Data: __________________, ${new Date().toLocaleDateString('pt-PT')}
+
+__________________________
+O Prestador
+
+__________________________
+O Cliente`
+            },
+            {
+                id: 'emprestimo',
+                title: 'Mútuo (Empréstimo)',
+                icon: 'dollar-sign',
+                description: 'Empréstimo de dinheiro entre particulares.',
+                fields: [
+                    { name: 'mutuanteNome', label: 'Nome de quem empresta (Mutuante)', type: 'text', section: 'Partes' },
+                    { name: 'mutuarioNome', label: 'Nome de quem recebe (Mutuário)', type: 'text', section: 'Partes' },
+                    { name: 'valor', label: 'Valor Emprestado (€)', type: 'number', section: 'Valor' },
+                    { name: 'dataDevolucao', label: 'Data Limite para Devolução', type: 'date', section: 'Condições' },
+                    { name: 'juros', label: 'Taxa de Juro (%) - Colocar 0 se for sem juros', type: 'number', section: 'Condições' },
+                ],
+                generate: (data) => `CONTRATO DE MÚTUO (EMPRÉSTIMO)
+
+ENTRE:
+${data.mutuanteNome || '[NOME]'} (Mutuante)
+E
+${data.mutuarioNome || '[NOME]'} (Mutuário)
+
+1. Pelo presente contrato, o Mutuante empresta ao Mutuário a quantia de ${data.valor || '0,00'}€.
+2. O Mutuário confessa-se devedor desta importância.
+3. O capital será reembolsado até ao dia ${data.dataDevolucao || '[DATA]'}.
+4. O empréstimo vence juros à taxa de ${data.juros || '0'}%.
+
+Assinaturas:
+
+__________________________      __________________________
+Mutuante                        Mutuário`
+            }
+        ];
+
+        // --- 2. GESTÃO DE ESTADO ---
+
+        const state = {
+            view: 'dashboard', // dashboard, form, preview
+            currentTemplateId: null,
+            formData: JSON.parse(localStorage.getItem('contratoFacil_data')) || {},
+            finalText: ''
+        };
+
+        const appContainer = document.getElementById('app');
+
+        // --- 3. RENDERIZAÇÃO DE VISTAS ---
+
+        function renderDashboard() {
+            const html = `
+                <div class="fade-in max-w-4xl mx-auto px-4 py-8">
+                    <div class="text-center mb-12">
+                        <h1 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Crie documentos jurídicos em minutos</h1>
+                        <p class="text-lg text-slate-600 max-w-2xl mx-auto">Selecione um modelo, responda a algumas perguntas e descarregue o seu PDF. Tudo acontece no seu navegador, os seus dados nunca saem daqui.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${TEMPLATES.map(t => `
+                            <button 
+                                onclick="actions.selectTemplate('${t.id}')"
+                                class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all text-left flex flex-col gap-4 group focus:ring-4 focus:ring-blue-100 w-full"
+                                aria-label="Criar contrato de ${t.title}"
+                            >
+                                <div class="p-3 bg-blue-50 text-blue-600 rounded-lg w-fit group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                                    <i data-lucide="${t.icon}" width="24" height="24"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-lg text-slate-900">${t.title}</h3>
+                                    <p class="text-slate-500 text-sm mt-1 leading-relaxed">${t.description}</p>
+                                </div>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            appContainer.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function renderForm() {
+            const template = TEMPLATES.find(t => t.id === state.currentTemplateId);
+            if (!template) return renderDashboard();
+
+            // Agrupar campos por secção
+            const sections = {};
+            template.fields.forEach(field => {
+                const sec = field.section || 'Geral';
+                if (!sections[sec]) sections[sec] = [];
+                sections[sec].push(field);
+            });
+
+            const html = `
+                <div class="slide-in max-w-2xl mx-auto px-4 py-8">
+                    <button onclick="actions.goBack()" class="flex items-center gap-2 text-slate-500 hover:text-slate-800 mb-6 font-medium">
+                        <i data-lucide="arrow-left" width="16"></i> Voltar
+                    </button>
+                    
+                    <h1 class="text-2xl font-bold mb-2">${template.title}</h1>
+                    <p class="text-slate-500 mb-8">Preencha os dados abaixo para gerar o seu rascunho.</p>
+
+                    <div class="space-y-8">
+                        ${Object.entries(sections).map(([secName, fields]) => `
+                            <fieldset class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <legend class="text-lg font-bold text-slate-800 mb-4 w-full border-b pb-2">${secName}</legend>
+                                <div class="space-y-4">
+                                    ${fields.map(field => `
+                                        <div>
+                                            <label for="${field.name}" class="block text-sm font-semibold text-slate-700 mb-1">
+                                                ${field.label}
+                                            </label>
+                                            ${field.type === 'textarea' 
+                                                ? `<textarea id="${field.name}" oninput="actions.updateField('${field.name}', this.value)" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]">${state.formData[field.name] || ''}</textarea>`
+                                                : `<input type="${field.type}" id="${field.name}" value="${state.formData[field.name] || ''}" oninput="actions.updateField('${field.name}', this.value)" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">`
+                                            }
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </fieldset>
+                        `).join('')}
+                    </div>
+
+                    <div class="mt-8 flex justify-end">
+                        <button 
+                            onclick="actions.generate()"
+                            class="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all flex items-center gap-2"
+                        >
+                            Gerar Contrato <i data-lucide="file-text" width="20"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            appContainer.innerHTML = html;
+            lucide.createIcons();
+            window.scrollTo(0, 0);
+        }
+
+        function renderPreview() {
+            const html = `
+                <div class="fade-in max-w-4xl mx-auto px-4 py-8 h-full flex flex-col">
+                     <button onclick="actions.editForm()" class="flex items-center gap-2 text-slate-500 hover:text-slate-800 mb-6 font-medium w-fit">
+                        <i data-lucide="arrow-left" width="16"></i> Voltar à edição
+                    </button>
+
+                    <div class="flex flex-col md:flex-row gap-6 h-full">
+                        <!-- Área de Edição -->
+                        <div class="flex-1 bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden flex flex-col">
+                            <div class="bg-slate-100 p-4 border-b border-slate-200 flex justify-between items-center">
+                                <h3 class="font-bold text-slate-700 flex items-center gap-2">
+                                    <i data-lucide="pen-tool" width="16"></i> Editor Final
+                                </h3>
+                                <span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Modo de Edição</span>
+                            </div>
+                            <textarea 
+                                id="final-editor"
+                                oninput="actions.updateFinalText(this.value)"
+                                class="w-full h-[60vh] p-8 font-mono text-sm leading-relaxed resize-none focus:outline-none text-slate-800"
+                                aria-label="Texto do contrato editável"
+                            >${state.finalText}</textarea>
+                        </div>
+
+                        <!-- Sidebar de Ações -->
+                        <div class="w-full md:w-64 flex flex-col gap-4">
+                            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                                <h4 class="font-bold text-blue-800 mb-2 text-sm">Pronto para exportar?</h4>
+                                <p class="text-xs text-blue-600 mb-4">Pode editar o texto diretamente na caixa ao lado antes de descarregar.</p>
+                                <button 
+                                    id="btn-download"
+                                    onclick="actions.downloadPDF()"
+                                    class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-blue-700 flex justify-center items-center gap-2 shadow-sm"
+                                >
+                                    Descarregar PDF <i data-lucide="download" width="18"></i>
+                                </button>
+                            </div>
+
+                            <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
+                                <h4 class="font-bold text-yellow-800 mb-2 text-sm flex items-center gap-2">
+                                    <i data-lucide="shield" width="14"></i> Aviso Legal
+                                </h4>
+                                <p class="text-xs text-yellow-700">
+                                    O ContratoFácil fornece minutas padronizadas. Não substitui aconselhamento jurídico.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            appContainer.innerHTML = html;
+            lucide.createIcons();
+            window.scrollTo(0, 0);
+        }
+
+        // --- 4. CONTROLADORES E AÇÕES ---
+
+        const actions = {
+            selectTemplate: (id) => {
+                state.currentTemplateId = id;
+                state.view = 'form';
+                renderForm();
+            },
+            goBack: () => {
+                state.currentTemplateId = null;
+                state.view = 'dashboard';
+                renderDashboard();
+            },
+            updateField: (name, value) => {
+                state.formData[name] = value;
+                localStorage.setItem('contratoFacil_data', JSON.stringify(state.formData));
+            },
+            generate: () => {
+                const template = TEMPLATES.find(t => t.id === state.currentTemplateId);
+                if (template) {
+                    state.finalText = template.generate(state.formData);
+                    state.view = 'preview';
+                    renderPreview();
+                }
+            },
+            editForm: () => {
+                state.view = 'form';
+                renderForm();
+            },
+            updateFinalText: (val) => {
+                state.finalText = val;
+            },
+            resetApp: () => {
+                if(confirm('Tem a certeza? Vai voltar ao início.')) {
+                    state.currentTemplateId = null;
+                    state.view = 'dashboard';
+                    renderDashboard();
+                }
+            },
+            downloadPDF: () => {
+                const btn = document.getElementById('btn-download');
+                const originalText = btn.innerHTML;
+                btn.textContent = "A Gerar...";
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    
+                    doc.setFont("helvetica");
+                    doc.setFontSize(12);
+                    
+                    const splitText = doc.splitTextToSize(state.finalText, 180);
+                    let cursorY = 20;
+                    const pageHeight = 280;
+
+                    splitText.forEach(line => {
+                        if (cursorY > pageHeight) {
+                            doc.addPage();
+                            cursorY = 20;
+                        }
+                        doc.text(line, 15, cursorY);
+                        cursorY += 7;
+                    });
+
+                    doc.save("contrato-facil.pdf");
+                    
+                    // Restaurar botão
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 500);
+            }
+        };
+
+        // --- 5. INICIALIZAÇÃO ---
+
+        document.getElementById('btn-reset').addEventListener('click', actions.resetApp);
+        document.getElementById('copyright-year').textContent = `© ${new Date().getFullYear()} ContratoFácil Portugal. Construído com privacidade em mente.`;
+
+        // Renderizar inicial
+        renderDashboard();
+
+    </script>
+</body>
+</html>
