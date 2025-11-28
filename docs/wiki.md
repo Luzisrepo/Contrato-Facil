@@ -465,7 +465,7 @@ graph TD
 
 ## 🎉 Obrigado por Usar o ContratoFácil!
 
-**📧 Email**: suporte@contratofacil.pt  
+**📧 Email**: andrrr.discord@gmail.com 
 **🐙 GitHub**: [https://github.com/Luzisrepo/Contrato-Facil](https://github.com/Luzisrepo/Contrato-Facil)  
 
 *"Tornando a criação de contratos acessível a todos"* ✨
